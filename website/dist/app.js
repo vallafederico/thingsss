@@ -1539,7 +1539,319 @@ function preloadVideo(video) {
 //   })
 //
 // }
-},{"regenerator-runtime":"tKZn","./classes/emitter.js":"lIG7"}],"P74P":[function(require,module,exports) {
+},{"regenerator-runtime":"tKZn","./classes/emitter.js":"lIG7"}],"UMLw":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function t() {}
+
+t.prototype = {
+  on: function (t, e, r) {
+    var i = this.e || (this.e = {});
+    return (i[t] || (i[t] = [])).push({
+      fn: e,
+      ctx: r
+    }), this;
+  },
+  once: function (t, e, r) {
+    var i = this;
+
+    function n() {
+      i.off(t, n), e.apply(r, arguments);
+    }
+
+    return n._ = e, this.on(t, n, r);
+  },
+  emit: function (t) {
+    for (var e = [].slice.call(arguments, 1), r = ((this.e || (this.e = {}))[t] || []).slice(), i = 0, n = r.length; i < n; i++) r[i].fn.apply(r[i].ctx, e);
+
+    return this;
+  },
+  off: function (t, e) {
+    var r = this.e || (this.e = {}),
+        i = r[t],
+        n = [];
+    if (i && e) for (var o = 0, s = i.length; o < s; o++) i[o].fn !== e && i[o].fn._ !== e && n.push(i[o]);
+    return n.length ? r[t] = n : delete r[t], this;
+  }
+};
+var e = t;
+e.TinyEmitter = t;
+
+var r = function (t) {
+  this.wrap = document.querySelector("[data-router-wrapper]"), this.properties = t, this.Transition = t.transition ? new t.transition.class(this.wrap, t.transition.name) : null;
+};
+
+r.prototype.setup = function () {
+  this.onEnter && this.onEnter(), this.onEnterCompleted && this.onEnterCompleted();
+}, r.prototype.add = function () {
+  this.wrap.insertAdjacentHTML("beforeend", this.properties.view.outerHTML);
+}, r.prototype.update = function () {
+  document.title = this.properties.page.title;
+}, r.prototype.show = function (t) {
+  var e = this;
+  return new Promise(function (r) {
+    try {
+      function i(t) {
+        e.onEnterCompleted && e.onEnterCompleted(), r();
+      }
+
+      return e.update(), e.onEnter && e.onEnter(), Promise.resolve(e.Transition ? Promise.resolve(e.Transition.show(t)).then(i) : i());
+    } catch (t) {
+      return Promise.reject(t);
+    }
+  });
+}, r.prototype.hide = function (t) {
+  var e = this;
+  return new Promise(function (r) {
+    try {
+      function i(t) {
+        e.onLeaveCompleted && e.onLeaveCompleted(), r();
+      }
+
+      return e.onLeave && e.onLeave(), Promise.resolve(e.Transition ? Promise.resolve(e.Transition.hide(t)).then(i) : i());
+    } catch (t) {
+      return Promise.reject(t);
+    }
+  });
+};
+
+var i = new window.DOMParser(),
+    n = function (t, e) {
+  this.renderers = t, this.transitions = e;
+};
+
+n.prototype.getOrigin = function (t) {
+  var e = t.match(/(https?:\/\/[\w\-.]+)/);
+  return e ? e[1].replace(/https?:\/\//, "") : null;
+}, n.prototype.getPathname = function (t) {
+  var e = t.match(/https?:\/\/.*?(\/[\w_\-./]+)/);
+  return e ? e[1] : "/";
+}, n.prototype.getAnchor = function (t) {
+  var e = t.match(/(#.*)$/);
+  return e ? e[1] : null;
+}, n.prototype.getParams = function (t) {
+  var e = t.match(/\?([\w_\-.=&]+)/);
+  if (!e) return null;
+
+  for (var r = e[1].split("&"), i = {}, n = 0; n < r.length; n++) {
+    var o = r[n].split("=");
+    i[o[0]] = o[1];
+  }
+
+  return i;
+}, n.prototype.getDOM = function (t) {
+  return "string" == typeof t ? i.parseFromString(t, "text/html") : t;
+}, n.prototype.getView = function (t) {
+  return t.querySelector("[data-router-view]");
+}, n.prototype.getSlug = function (t) {
+  return t.getAttribute("data-router-view");
+}, n.prototype.getRenderer = function (t) {
+  if (!this.renderers) return Promise.resolve(r);
+
+  if (t in this.renderers) {
+    var e = this.renderers[t];
+    return "function" != typeof e || r.isPrototypeOf(e) ? "function" == typeof e.then ? Promise.resolve(e).then(function (t) {
+      return t.default;
+    }) : Promise.resolve(e) : Promise.resolve(e()).then(function (t) {
+      return t.default;
+    });
+  }
+
+  return Promise.resolve(r);
+}, n.prototype.getTransition = function (t) {
+  return this.transitions ? t in this.transitions ? {
+    class: this.transitions[t],
+    name: t
+  } : "default" in this.transitions ? {
+    class: this.transitions.default,
+    name: "default"
+  } : null : null;
+}, n.prototype.getProperties = function (t) {
+  var e = this.getDOM(t),
+      r = this.getView(e),
+      i = this.getSlug(r);
+  return {
+    page: e,
+    view: r,
+    slug: i,
+    renderer: this.getRenderer(i, this.renderers),
+    transition: this.getTransition(i, this.transitions)
+  };
+}, n.prototype.getLocation = function (t) {
+  return {
+    href: t,
+    anchor: this.getAnchor(t),
+    origin: this.getOrigin(t),
+    params: this.getParams(t),
+    pathname: this.getPathname(t)
+  };
+};
+
+var o = function (t) {
+  function e(e) {
+    var r = this;
+    void 0 === e && (e = {});
+    var i = e.renderers,
+        o = e.transitions;
+    t.call(this), this.Helpers = new n(i, o), this.Transitions = o, this.Contextual = !1, this.location = this.Helpers.getLocation(window.location.href), this.properties = this.Helpers.getProperties(document.cloneNode(!0)), this.popping = !1, this.running = !1, this.trigger = null, this.cache = new Map(), this.cache.set(this.location.href, this.properties), this.properties.renderer.then(function (t) {
+      r.From = new t(r.properties), r.From.setup();
+    }), this._navigate = this.navigate.bind(this), window.addEventListener("popstate", this.popState.bind(this)), this.links = document.querySelectorAll("a:not([target]):not([data-router-disabled])"), this.attach(this.links);
+  }
+
+  return t && (e.__proto__ = t), (e.prototype = Object.create(t && t.prototype)).constructor = e, e.prototype.attach = function (t) {
+    for (var e = 0, r = t; e < r.length; e += 1) r[e].addEventListener("click", this._navigate);
+  }, e.prototype.detach = function (t) {
+    for (var e = 0, r = t; e < r.length; e += 1) r[e].removeEventListener("click", this._navigate);
+  }, e.prototype.navigate = function (t) {
+    if (!t.metaKey && !t.ctrlKey) {
+      t.preventDefault();
+      var e = !!t.currentTarget.hasAttribute("data-transition") && t.currentTarget.dataset.transition;
+      this.redirect(t.currentTarget.href, e, t.currentTarget);
+    }
+  }, e.prototype.redirect = function (t, e, r) {
+    if (void 0 === e && (e = !1), void 0 === r && (r = "script"), this.trigger = r, !this.running && t !== this.location.href) {
+      var i = this.Helpers.getLocation(t);
+      this.Contextual = !1, e && (this.Contextual = this.Transitions.contextual[e].prototype, this.Contextual.name = e), i.origin !== this.location.origin || i.anchor && i.pathname === this.location.pathname ? window.location.href = t : (this.location = i, this.beforeFetch());
+    }
+  }, e.prototype.popState = function () {
+    this.trigger = "popstate", this.Contextual = !1;
+    var t = this.Helpers.getLocation(window.location.href);
+    this.location.pathname !== t.pathname || !this.location.anchor && !t.anchor ? (this.popping = !0, this.location = t, this.beforeFetch()) : this.location = t;
+  }, e.prototype.pushState = function () {
+    this.popping || window.history.pushState(this.location, "", this.location.href);
+  }, e.prototype.fetch = function () {
+    try {
+      var t = this;
+      return Promise.resolve(fetch(t.location.href, {
+        mode: "same-origin",
+        method: "GET",
+        headers: {
+          "X-Requested-With": "Highway"
+        },
+        credentials: "same-origin"
+      })).then(function (e) {
+        if (e.status >= 200 && e.status < 300) return e.text();
+        window.location.href = t.location.href;
+      });
+    } catch (t) {
+      return Promise.reject(t);
+    }
+  }, e.prototype.beforeFetch = function () {
+    try {
+      var t = this;
+
+      function e() {
+        t.afterFetch();
+      }
+
+      t.pushState(), t.running = !0, t.emit("NAVIGATE_OUT", {
+        from: {
+          page: t.From.properties.page,
+          view: t.From.properties.view
+        },
+        trigger: t.trigger,
+        location: t.location
+      });
+      var r = {
+        trigger: t.trigger,
+        contextual: t.Contextual
+      },
+          i = t.cache.has(t.location.href) ? Promise.resolve(t.From.hide(r)).then(function () {
+        t.properties = t.cache.get(t.location.href);
+      }) : Promise.resolve(Promise.all([t.fetch(), t.From.hide(r)])).then(function (e) {
+        t.properties = t.Helpers.getProperties(e[0]), t.cache.set(t.location.href, t.properties);
+      });
+      return Promise.resolve(i && i.then ? i.then(e) : e());
+    } catch (t) {
+      return Promise.reject(t);
+    }
+  }, e.prototype.afterFetch = function () {
+    try {
+      var t = this;
+      return Promise.resolve(t.properties.renderer).then(function (e) {
+        return t.To = new e(t.properties), t.To.add(), t.emit("NAVIGATE_IN", {
+          to: {
+            page: t.To.properties.page,
+            view: t.To.wrap.lastElementChild
+          },
+          trigger: t.trigger,
+          location: t.location
+        }), Promise.resolve(t.To.show({
+          trigger: t.trigger,
+          contextual: t.Contextual
+        })).then(function () {
+          t.popping = !1, t.running = !1, t.detach(t.links), t.links = document.querySelectorAll("a:not([target]):not([data-router-disabled])"), t.attach(t.links), t.emit("NAVIGATE_END", {
+            to: {
+              page: t.To.properties.page,
+              view: t.To.wrap.lastElementChild
+            },
+            from: {
+              page: t.From.properties.page,
+              view: t.From.properties.view
+            },
+            trigger: t.trigger,
+            location: t.location
+          }), t.From = t.To, t.trigger = null;
+        });
+      });
+    } catch (t) {
+      return Promise.reject(t);
+    }
+  }, e;
+}(e),
+    s = function (t, e) {
+  this.wrap = t, this.name = e;
+};
+
+s.prototype.show = function (t) {
+  var e = this,
+      r = t.trigger,
+      i = t.contextual,
+      n = this.wrap.lastElementChild,
+      o = this.wrap.firstElementChild;
+  return new Promise(function (t) {
+    i ? (n.setAttribute("data-transition-in", i.name), n.removeAttribute("data-transition-out", i.name), i.in && i.in({
+      to: n,
+      from: o,
+      trigger: r,
+      done: t
+    })) : (n.setAttribute("data-transition-in", e.name), n.removeAttribute("data-transition-out", e.name), e.in && e.in({
+      to: n,
+      from: o,
+      trigger: r,
+      done: t
+    }));
+  });
+}, s.prototype.hide = function (t) {
+  var e = this,
+      r = t.trigger,
+      i = t.contextual,
+      n = this.wrap.firstElementChild;
+  return new Promise(function (t) {
+    i ? (n.setAttribute("data-transition-out", i.name), n.removeAttribute("data-transition-in", i.name), i.out && i.out({
+      from: n,
+      trigger: r,
+      done: t
+    })) : (n.setAttribute("data-transition-out", e.name), n.removeAttribute("data-transition-in", e.name), e.out && e.out({
+      from: n,
+      trigger: r,
+      done: t
+    }));
+  });
+}, console.log("Highway v2.2.0");
+var _default = {
+  Core: o,
+  Helpers: n,
+  Renderer: r,
+  Transition: s
+};
+exports.default = _default;
+},{}],"P74P":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7399,7 +7711,7 @@ var setup = {
 exports.setup = setup;
 var anim = {
   in: {
-    duration: 1.5,
+    duration: 1.8,
     ease: 'expo.out',
     delay: .1,
     stagger: 0.03,
@@ -7407,10 +7719,10 @@ var anim = {
   },
   out: {
     duration: 1.5,
-    ease: 'expo.out',
+    ease: 'expo',
     delay: 0,
-    stagger: 0.03,
-    from: 'start'
+    stagger: 0.02,
+    from: 'end'
   }
 };
 exports.anim = anim;
@@ -7582,6 +7894,20 @@ var Text = /*#__PURE__*/function (_Animation) {
           _this2.setIn();
 
           _this2.stop();
+        }
+      });
+    }
+  }, {
+    key: "animOut",
+    value: function animOut() {
+      _gsap.default.to(this.animated, {
+        y: '-200%',
+        duration: _config.anim.out.duration,
+        ease: _config.anim.out.ease,
+        delay: 0,
+        stagger: {
+          each: _config.anim.out.stagger,
+          from: _config.anim.out.from
         }
       });
     }
@@ -7777,7 +8103,6 @@ var LateManager = /*#__PURE__*/function () {
       this.items.forEach(function (item) {
         item.watch = new IsItIn(item);
       });
-      console.log(this.items);
     }
   }]);
 
@@ -7838,6 +8163,70 @@ var IsItIn = /*#__PURE__*/function () {
 
   return IsItIn;
 }();
+},{}],"EL4j":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.pushDocumentation = pushDocumentation;
+
+function processRow(rows) {
+  // all rows
+  var allR = [];
+  return rows.map(function (row) {
+    var r = row.c; // inner row elements
+
+    var cRow = [];
+    r.map(function (item) {
+      var v = item.v;
+      cRow.push(v);
+    });
+    allR.push(cRow);
+    return allR;
+  });
+}
+
+function popDocs(rows) {
+  var clone = document.querySelector('[data-doc="copy"]');
+  var wrapper = document.querySelector('[data-doc="w"]');
+  rows.forEach(function (item, i) {
+    var line = clone.cloneNode(true);
+    line.children[0].children[0].textContent = item[i][0];
+    line.children[1].children[0].textContent = item[i][1];
+    line.children[1].children[1].textContent = item[i][2];
+    line.children[2].children[0].textContent = item[i][3];
+    line.children[3].children[0].textContent = item[i][4];
+    wrapper.appendChild(line);
+  });
+} // parse
+
+
+function init(data) {
+  var rows = processRow(data);
+  popDocs(rows); //console.log(rows);
+} // dom elements
+
+
+function pushDocumentation(id) {
+  return new Promise(function (resolve, reject) {
+    // fetch
+    var shId;
+
+    if (id) {
+      shId = id.textContent;
+      fetch("https://docs.google.com/spreadsheets/d/".concat(shId, "/gviz/tq?tqx=out:json")).then(function (res) {
+        return res.text();
+      }).then(function (text) {
+        var json = JSON.parse(text.substr(47).slice(0, -2));
+        init(json.table.rows);
+      }).then(function () {
+        // console.log('done with docs');
+        resolve();
+      });
+    }
+  });
+}
 },{}],"tejJ":[function(require,module,exports) {
 "use strict";
 
@@ -7849,6 +8238,8 @@ exports.default = void 0;
 var _text = require("./anim/text.js");
 
 var _inview = require("./anim/inview.js");
+
+var _pushDocs = require("./func/push-docs.js");
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
@@ -7872,20 +8263,52 @@ var _default = /*#__PURE__*/function () {
   function _default() {
     _classCallCheck(this, _default);
 
-    this.initInview();
-    this.initAnim();
-    document.querySelector('body').style.visibility = 'visible';
+    // handle landing in
+    this.in();
+    this.checkDynamics();
   }
 
   _createClass(_default, [{
-    key: "initInview",
-    value: function initInview() {
-      setTimeout(function () {
-        new _inview.Manager();
-      }, 300);
-      setTimeout(function () {
-        new _inview.LateManager();
-      }, 1000);
+    key: "in",
+    value: function _in() {
+      this.initAnim();
+      this.inOut = new _inview.Manager();
+    }
+  }, {
+    key: "lateInOut",
+    value: function lateInOut() {
+      new _inview.LateManager();
+    }
+  }, {
+    key: "out",
+    value: function out() {
+      if (this.texts && this.texts.char) {
+        this.texts.char.forEach(function (item) {
+          item.stop();
+          item.animOut();
+        });
+      }
+
+      if (this.texts && this.texts.word) {
+        this.texts.word.forEach(function (item) {
+          item.stop();
+          item.animOut();
+        });
+      }
+    }
+  }, {
+    key: "checkDynamics",
+    value: function checkDynamics() {
+      var _this = this;
+
+      // push docs if product page
+      var docsId = document.querySelector('[data-doc="id"]');
+
+      if (docsId) {
+        (0, _pushDocs.pushDocumentation)(docsId).then(function () {
+          return _this.lateInOut();
+        });
+      }
     }
   }, {
     key: "initAnim",
@@ -7924,12 +8347,163 @@ var _default = /*#__PURE__*/function () {
 }();
 
 exports.default = _default;
-},{"./anim/text.js":"amHu","./anim/inview.js":"hMrF"}],"vZyd":[function(require,module,exports) {
+},{"./anim/text.js":"amHu","./anim/inview.js":"hMrF","./func/push-docs.js":"EL4j"}],"qJoy":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _highway = _interopRequireDefault(require("@dogstudio/highway"));
+
+var _gsap = _interopRequireDefault(require("gsap"));
+
+var _dom = _interopRequireDefault(require("./dom.js"));
+
+var _pushDocs = require("./func/push-docs.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var _default = /*#__PURE__*/function () {
+  function _default() {
+    _classCallCheck(this, _default);
+
+    this.pages = new _highway.default.Core({
+      transitions: {
+        default: T
+      }
+    });
+    this.dom = new _dom.default();
+    this.addEvents(); // console.log(this);
+  }
+
+  _createClass(_default, [{
+    key: "addEvents",
+    value: function addEvents() {
+      var _this = this;
+
+      this.pages.on('NAVIGATE_IN', function (data) {
+        return _this.in(data);
+      });
+      this.pages.on('NAVIGATE_OUT', function (data) {
+        return _this.out(data);
+      });
+      this.pages.on('NAVIGATE_END', function (data) {
+        return _this.end(data);
+      });
+    }
+  }, {
+    key: "in",
+    value: function _in(_ref) {
+      var to = _ref.to,
+          trigger = _ref.trigger,
+          location = _ref.location;
+      // console.log('in', to);
+      this.dom.in();
+    }
+  }, {
+    key: "out",
+    value: function out(_ref2) {
+      var from = _ref2.from,
+          trigger = _ref2.trigger,
+          location = _ref2.location;
+      // console.log('out', from);
+      this.dom.out();
+    }
+  }, {
+    key: "end",
+    value: function end(_ref3) {
+      var _this2 = this;
+
+      var to = _ref3.to,
+          from = _ref3.from,
+          trigger = _ref3.trigger,
+          location = _ref3.location;
+      // console.log('end', to, from);
+      // push docs if product page
+      var docsId = to.view.querySelector('[data-doc="id"]');
+
+      if (docsId) {
+        (0, _pushDocs.pushDocumentation)(docsId).then(function () {
+          return _this2.dom.lateInOut();
+        });
+      }
+    }
+  }]);
+
+  return _default;
+}();
+
+exports.default = _default;
+
+var T = /*#__PURE__*/function (_Highway$Transition) {
+  _inherits(T, _Highway$Transition);
+
+  var _super = _createSuper(T);
+
+  function T() {
+    _classCallCheck(this, T);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(T, [{
+    key: "in",
+    value: function _in(_ref4) {
+      var from = _ref4.from,
+          to = _ref4.to,
+          done = _ref4.done;
+      window.scrollTo(0, 0); // kill on custom scroll
+
+      from.remove();
+      done();
+    } //
+
+  }, {
+    key: "out",
+    value: function out(_ref5) {
+      var from = _ref5.from,
+          done = _ref5.done;
+
+      _gsap.default.to(from, {
+        autoAlpha: 0,
+        delay: .2,
+        onComplete: done
+      });
+    }
+  }]);
+
+  return T;
+}(_highway.default.Transition);
+},{"@dogstudio/highway":"UMLw","gsap":"f8Z0","./dom.js":"tejJ","./func/push-docs.js":"EL4j"}],"vZyd":[function(require,module,exports) {
 "use strict";
 
 var _preloader = _interopRequireDefault(require("./modules/preloader.js"));
 
-var _dom = _interopRequireDefault(require("./modules/dom.js"));
+var _pages = _interopRequireDefault(require("./modules/pages.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -7949,9 +8523,7 @@ var App = /*#__PURE__*/function () {
   _createClass(App, [{
     key: "init",
     value: function init() {
-      // console.log('init!');
-      // this.addEventsListeners();
-      this.dom = new _dom.default();
+      this.pages = new _pages.default();
     }
     /*
     ** Loop
@@ -7962,43 +8534,15 @@ var App = /*#__PURE__*/function () {
     value: function update() {
       window.requestAnimationFrame(this.update.bind(this));
     }
-    /*
-    ** Events
-    */
-
-  }, {
-    key: "addEventsListeners",
-    value: function addEventsListeners() {
-      window.addEventListener('resize', this.onResize.bind(this));
-
-      if ("ontouchmove" in window) {
-        window.addEventListener("touchstart", this.handleMouseDown.bind(this));
-        window.addEventListener("touchmove", this.handleMouseMove.bind(this));
-        window.addEventListener("touchend", this.handleMouseUp.bind(this));
-      } else {
-        window.addEventListener("mousedown", this.handleMouseDown.bind(this));
-        window.addEventListener("mousemove", this.handleMouseMove.bind(this));
-        window.addEventListener("mouseup", this.handleMouseUp.bind(this));
-      }
-    }
   }, {
     key: "onResize",
     value: function onResize() {// console.log('resizing');
     }
-  }, {
-    key: "handleMouseDown",
-    value: function handleMouseDown() {}
-  }, {
-    key: "handleMouseMove",
-    value: function handleMouseMove() {}
-  }, {
-    key: "handleMouseUp",
-    value: function handleMouseUp() {}
   }]);
 
   return App;
 }();
 
 new App();
-},{"./modules/preloader.js":"YLcB","./modules/dom.js":"tejJ"}]},{},["vZyd"], null)
-//# sourceMappingURL=/app.88f51d66.js.map
+},{"./modules/preloader.js":"YLcB","./modules/pages.js":"qJoy"}]},{},["vZyd"], null)
+//# sourceMappingURL=/app.809113ea.js.map
